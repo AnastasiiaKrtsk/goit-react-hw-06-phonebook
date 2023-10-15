@@ -1,51 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact, deleteContact, updateFilter } from './contactsSlice';
+
 import { nanoid } from 'nanoid';
-import ContactForm from './contact-form/ContactForm';
-import Contacts from './contacts/Contacts';
+import ContactForm from './ContactForm/ContactForm';
+import Contacts from './Contacts/Contacts';
 
 function App() {
-  const [contacts, setContacts] = useState(() => {
-    const storedContacts = localStorage.getItem('contacts');
-    return storedContacts ? JSON.parse(storedContacts) : [];
-  });
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  const dispatch = useDispatch();
+  const contacts = useSelector(state => state.contacts.items);
+  const filter = useSelector(state => state.contacts.filter);
 
   const handleAddContact = (name, number) => {
-    const existingContact = contacts.find(
-      contact =>
-        contact.name.trim().toLowerCase() === name.trim().toLowerCase() ||
-        contact.number.trim() === number.trim()
-    );
-
-    if (existingContact) {
-      alert(
-        `Contact with the name "${name}" or number "${number}" already exists.`
-      );
-      return;
-    }
-
-    if (name.trim() !== '' && number.trim() !== '') {
-      const newContact = {
-        id: nanoid(),
-        name: name.trim(),
-        number: number.trim(),
-      };
-      setContacts(prevContacts => [...prevContacts, newContact]);
-    }
+    dispatch(addContact({ id: nanoid(), name, number }));
   };
 
   const onDeleteContact = id => {
-    setContacts(prevContacts =>
-      prevContacts.filter(contact => contact.id !== id)
-    );
+    dispatch(deleteContact(id));
   };
 
   const onFilterChange = e => {
-    setFilter(e.target.value);
+    dispatch(updateFilter(e.target.value));
   };
 
   const filteredContacts = contacts.filter(contact => {
